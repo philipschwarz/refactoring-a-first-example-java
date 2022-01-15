@@ -12,9 +12,9 @@ import static java.util.stream.Collectors.toList;
 
 record Play(String name, String type) { }
 
-record Performance(String playID, Optional<Play> play, int audience) {
+record Performance(String playID, Optional<Play> play, int audience, Optional<Integer> amount){
   Performance(String playID, int audience) {
-    this(playID, Optional.empty(), audience);
+    this(playID, Optional.empty(), audience, Optional.empty());
   }
 }
 
@@ -29,22 +29,9 @@ public class Statement {
     Function<Performance,Play> playFor =
       aPerformance -> plays.get(aPerformance.playID());
 
-    Function<Performance,Performance> enrichPerformance = aPerformance ->
-      new Performance(aPerformance.playID(),
-                      Optional.of(playFor.apply(aPerformance)),
-                      aPerformance.audience());
-    
-    final var statementData = new StatementData(
-      invoice .customer(),
-      invoice.performances().stream().map(enrichPerformance::apply).collect(toList()));
-    return renderPlainText(statementData, plays);
-  }
-
-  static String renderPlainText(StatementData data, Map<String, Play> plays) {
-
     Function<Performance,Integer> amountFor = aPerformance -> {
       var result = 0;
-      switch (aPerformance.play().get().type()) {
+      switch (playFor.apply(aPerformance).type()) {
         case "tragedy" -> {
           result = 40_000;
           if (aPerformance.audience() > 30)
@@ -57,10 +44,24 @@ public class Statement {
           result += 300 * aPerformance.audience();
         }
         default ->
-          throw new IllegalArgumentException("unknown type " + aPerformance.play().get().type());
+            throw new IllegalArgumentException("unknown type " + playFor.apply(aPerformance).type());
       }
       return result;
     };
+
+    Function<Performance,Performance> enrichPerformance = aPerformance ->
+      new Performance(aPerformance.playID(),
+          Optional.of(playFor.apply(aPerformance)),
+          aPerformance.audience(),
+          Optional.of(amountFor.apply(aPerformance)));
+
+    final var statementData = new StatementData(
+      invoice .customer(),
+      invoice.performances().stream().map(enrichPerformance::apply).collect(toList()));
+    return renderPlainText(statementData);
+  }
+
+  static String renderPlainText(StatementData data) {
 
     Function<Performance,Integer> volumeCreditsFor = aPerformance -> {
       var result = 0;
@@ -86,13 +87,13 @@ public class Statement {
     Supplier<Integer> totalAmount = () -> {
       var result = 0;
       for (Performance perf : data.performances())
-        result += amountFor.apply(perf);
+        result += perf.amount().get();
       return result;
     };
 
     var result = "Statement for " + data.customer() + "\n";
     for(Performance perf : data.performances()) {
-      result += "  " + perf.play().get().name() + ": " + usd.apply(amountFor.apply(perf)/100)
+      result += "  " + perf.play().get().name() + ": " + usd.apply(perf.amount().get()/100)
                      + " (" + perf.audience() + " seats)\n";
     }
 
