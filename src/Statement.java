@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 record Play(String name, String type) { }
 
@@ -53,6 +54,14 @@ public class Statement {
       return formatter.format(aNumber);
     };
 
+    Supplier<Integer> totalVolumeCredits = () -> {
+      var volumeCredits = 0;
+      for (Performance perf : invoice.performances()) {
+        volumeCredits += volumeCreditsFor.apply(perf);
+      }
+      return volumeCredits;
+    };
+    
     var totalAmount = 0;
     var result = "Statement for " + invoice.customer() + "\n";
 
@@ -63,16 +72,11 @@ public class Statement {
       totalAmount += amountFor.apply(perf);
     }
 
-    var volumeCredits = 0;
-    for(Performance perf : invoice.performances()) {
-      volumeCredits += volumeCreditsFor.apply(perf);
-    }
-
     result += "Amount owed is " + usd.apply(totalAmount/100) + "\n";
-    result += "You earned " + volumeCredits + " credits\n";
+    result += "You earned " + totalVolumeCredits.get() + " credits\n";
     return result;
   }
-  
+
   static final List<Invoice> invoices =
     List.of(
       new Invoice(
