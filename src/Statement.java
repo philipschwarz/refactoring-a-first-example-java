@@ -13,12 +13,16 @@ record Performance(String playID, int audience) { }
 
 record Invoice(String customer, List<Performance> performances) { }
 
+record StatementData() { }
+
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
-    return renderPlainText(invoice, plays);
+    final var statementData = new StatementData();
+    return renderPlainText(statementData, invoice, plays);
   }
-  static String renderPlainText(Invoice invoice, Map<String, Play> plays) {
+
+  static String renderPlainText(StatementData data, Invoice invoice, Map<String, Play> plays) {
 
     Function<Performance,Play> playFor = aPerformance ->
         plays.get(aPerformance.playID());
