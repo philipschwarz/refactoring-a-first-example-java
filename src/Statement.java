@@ -12,15 +12,19 @@ import static java.util.stream.Collectors.toList;
 
 record Play(String name, String type) { }
 
-record Performance(String playID, Optional<Play> play, int audience, Optional<Integer> amount, Optional<Integer> volumeCredits){
-  Performance(String playID, int audience) {
-    this(playID, Optional.empty(), audience, Optional.empty(), Optional.empty());
-  }
-}
+record Performance(String playID, int audience) { }
+
+record EnrichedPerformance(
+    String playID,
+    Play play,
+    int audience,
+    Integer amount,
+    Integer volumeCredits
+) { }
 
 record Invoice(String customer, List<Performance> performances) { }
 
-record StatementData(String customer, List<Performance> performances) { }
+record StatementData(String customer, List<EnrichedPerformance> performances) { }
 
 public class Statement {
 
@@ -57,12 +61,13 @@ public class Statement {
       return result;
     };
 
-    Function<Performance,Performance> enrichPerformance = aPerformance ->
-      new Performance(aPerformance.playID(),
-          Optional.of(playFor.apply(aPerformance)),
-          aPerformance.audience(),
-          Optional.of(amountFor.apply(aPerformance)),
-          Optional.of(volumeCreditsFor.apply(aPerformance)));
+    Function<Performance,EnrichedPerformance> enrichPerformance = aPerformance ->
+      new EnrichedPerformance(
+        aPerformance.playID(),
+        playFor.apply(aPerformance),
+        aPerformance.audience(),
+        amountFor.apply(aPerformance),
+        volumeCreditsFor.apply(aPerformance));
 
     final var statementData = new StatementData(
       invoice .customer(),
@@ -80,21 +85,21 @@ public class Statement {
 
     Supplier<Integer> totalVolumeCredits = () -> {
       var result = 0;
-      for (Performance perf : data.performances())
-        result += perf.volumeCredits().get();
+      for (EnrichedPerformance perf : data.performances())
+        result += perf.volumeCredits();
       return result;
     };
 
     Supplier<Integer> totalAmount = () -> {
       var result = 0;
-      for (Performance perf : data.performances())
-        result += perf.amount().get();
+      for (EnrichedPerformance perf : data.performances())
+        result += perf.amount();
       return result;
     };
 
     var result = "Statement for " + data.customer() + "\n";
-    for(Performance perf : data.performances()) {
-      result += "  " + perf.play().get().name() + ": " + usd.apply(perf.amount().get()/100)
+    for(EnrichedPerformance perf : data.performances()) {
+      result += "  " + perf.play().name() + ": " + usd.apply(perf.amount()/100)
                      + " (" + perf.audience() + " seats)\n";
     }
 
