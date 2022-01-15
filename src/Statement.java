@@ -13,12 +13,12 @@ record Performance(String playID, int audience) { }
 
 record Invoice(String customer, List<Performance> performances) { }
 
-record StatementData() { }
+record StatementData(String customer) { }
 
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
-    final var statementData = new StatementData();
+    final var statementData = new StatementData(invoice .customer());
     return renderPlainText(statementData, invoice, plays);
   }
 
@@ -75,7 +75,7 @@ public class Statement {
       return result;
     };
 
-    var result = "Statement for " + invoice.customer() + "\n";
+    var result = "Statement for " + data.customer() + "\n";
     for(Performance perf : invoice.performances()) {
       result += "  " + playFor.apply(perf).name() + ": " + usd.apply(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
