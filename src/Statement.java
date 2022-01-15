@@ -54,22 +54,25 @@ public class Statement {
     };
 
     var totalAmount = 0;
-    var volumeCredits = 0;
     var result = "Statement for " + invoice.customer() + "\n";
 
     for(Performance perf : invoice.performances()) {
-      volumeCredits += volumeCreditsFor.apply(perf);
-
       // print line for this order
       result += "  " + playFor.apply(perf).name() + ": " + usd.apply(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
       totalAmount += amountFor.apply(perf);
     }
+
+    var volumeCredits = 0;
+    for(Performance perf : invoice.performances()) {
+      volumeCredits += volumeCreditsFor.apply(perf);
+    }
+
     result += "Amount owed is " + usd.apply(totalAmount/100) + "\n";
     result += "You earned " + volumeCredits + " credits\n";
     return result;
   }
-
+  
   static final List<Invoice> invoices =
     List.of(
       new Invoice(
