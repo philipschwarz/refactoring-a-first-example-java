@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 record Play(String name, String type) { }
 
@@ -35,6 +36,9 @@ public class Statement {
       return result;
     };
 
+    Function<Performance,Play> playFor = aPerformance ->
+        plays.get(aPerformance.playID());
+
     var totalAmount = 0;
     var volumeCredits = 0;
     var result = "Statement for " + invoice.customer() + "\n";
@@ -42,7 +46,7 @@ public class Statement {
     formatter.setCurrency(Currency.getInstance(Locale.US));
 
     for(Performance perf : invoice.performances()) {
-      final var play = plays.get(perf.playID());
+      final var play = playFor.apply(perf);
       final var thisAmount = amountFor.apply(perf,play);
 
       // add volume credits
