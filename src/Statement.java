@@ -3,10 +3,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
 
@@ -24,7 +21,12 @@ record EnrichedPerformance(
 
 record Invoice(String customer, List<Performance> performances) { }
 
-record StatementData(String customer, List<EnrichedPerformance> performances) { }
+record StatementData(
+  String customer,
+  List<EnrichedPerformance> performances,
+  Integer totalAmount,
+  Integer totalVolumeCredits
+) { }
 
 public class Statement {
 
@@ -48,7 +50,7 @@ public class Statement {
           result += 300 * aPerformance.audience();
         }
         default ->
-            throw new IllegalArgumentException("unknown type " + playFor.apply(aPerformance).type());
+          throw new IllegalArgumentException("unknown type " + playFor.apply(aPerformance).type());
       }
       return result;
     };
@@ -61,6 +63,20 @@ public class Statement {
       return result;
     };
 
+    Function<List<EnrichedPerformance>,Integer> totalVolumeCredits = performances -> {
+      var result = 0;
+      for (EnrichedPerformance perf : performances)
+        result += perf.volumeCredits();
+      return result;
+    };
+
+    Function<List< EnrichedPerformance>,Integer> totalAmount = performances -> {
+      var result = 0;
+      for (EnrichedPerformance perf : performances)
+        result += perf.amount();
+      return result;
+    };
+
     Function<Performance,EnrichedPerformance> enrichPerformance = aPerformance ->
       new EnrichedPerformance(
         aPerformance.playID(),
@@ -69,9 +85,13 @@ public class Statement {
         amountFor.apply(aPerformance),
         volumeCreditsFor.apply(aPerformance));
 
+    final var enrichedPerformances =
+      invoice.performances().stream().map(enrichPerformance::apply).collect(toList());
     final var statementData = new StatementData(
       invoice .customer(),
-      invoice.performances().stream().map(enrichPerformance::apply).collect(toList()));
+      enrichedPerformances,
+      totalAmount.apply(enrichedPerformances),
+      totalVolumeCredits.apply(enrichedPerformances));
     return renderPlainText(statementData);
   }
 
@@ -83,28 +103,14 @@ public class Statement {
       return formatter.format(aNumber);
     };
 
-    Supplier<Integer> totalVolumeCredits = () -> {
-      var result = 0;
-      for (EnrichedPerformance perf : data.performances())
-        result += perf.volumeCredits();
-      return result;
-    };
-
-    Supplier<Integer> totalAmount = () -> {
-      var result = 0;
-      for (EnrichedPerformance perf : data.performances())
-        result += perf.amount();
-      return result;
-    };
-
     var result = "Statement for " + data.customer() + "\n";
     for(EnrichedPerformance perf : data.performances()) {
       result += "  " + perf.play().name() + ": " + usd.apply(perf.amount()/100)
                      + " (" + perf.audience() + " seats)\n";
     }
 
-    result += "Amount owed is " + usd.apply(totalAmount.get()/100) + "\n";
-    result += "You earned " + totalVolumeCredits.get() + " credits\n";
+    result += "Amount owed is " + usd.apply(data.totalAmount()/100) + "\n";
+    result += "You earned " + data.totalVolumeCredits() + " credits\n";
     return result;
   }
 
