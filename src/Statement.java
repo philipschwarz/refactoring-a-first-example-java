@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
+import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 record Play(String name, String type) { }
@@ -63,19 +64,11 @@ public class Statement {
       return result;
     };
 
-    Function<List<EnrichedPerformance>,Integer> totalVolumeCredits = performances -> {
-      var result = 0;
-      for (EnrichedPerformance perf : performances)
-        result += perf.volumeCredits();
-      return result;
-    };
+    Function<List<EnrichedPerformance>,Integer> totalVolumeCredits = (performances) ->
+      performances.stream().collect(reducing(0,EnrichedPerformance::volumeCredits,Integer::sum));
 
-    Function<List< EnrichedPerformance>,Integer> totalAmount = performances -> {
-      var result = 0;
-      for (EnrichedPerformance perf : performances)
-        result += perf.amount();
-      return result;
-    };
+    Function<List<EnrichedPerformance>,Integer> totalAmount = (performances) ->
+      performances.stream().collect(reducing(0,EnrichedPerformance::amount,Integer::sum));
 
     Function<Performance,EnrichedPerformance> enrichPerformance = aPerformance ->
       new EnrichedPerformance(
