@@ -39,6 +39,14 @@ public class Statement {
       return result;
     };
 
+    Function<Performance,Integer> volumeCreditsFor = aPerformance -> {
+      var result = 0;
+      result += Math.max(aPerformance.audience() - 30, 0);
+      if ("comedy" == playFor.apply(aPerformance).type())
+        result += Math.floor(aPerformance.audience() / 5);
+          return result;
+    };
+
     var totalAmount = 0;
     var volumeCredits = 0;
     var result = "Statement for " + invoice.customer() + "\n";
@@ -46,11 +54,7 @@ public class Statement {
     formatter.setCurrency(Currency.getInstance(Locale.US));
 
     for(Performance perf : invoice.performances()) {
-        // add volume credits
-      volumeCredits += Math.max(perf.audience() - 30, 0);
-      // add extra credit for every ten comedy attendees
-      if ("comedy" == playFor.apply(perf).type())
-        volumeCredits += Math.floor(perf.audience() / 5);
+      volumeCredits += volumeCreditsFor.apply(perf);
 
       // print line for this order
       result += "  " + playFor.apply(perf).name() + ": " + formatter.format(amountFor.apply(perf)/100)
