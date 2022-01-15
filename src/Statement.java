@@ -47,21 +47,25 @@ public class Statement {
           return result;
     };
 
+    Function<Integer,String> usd = aNumber -> {
+      final var formatter = NumberFormat.getCurrencyInstance(Locale.US);
+      formatter.setCurrency(Currency.getInstance(Locale.US));
+      return formatter.format(aNumber);
+    };
+
     var totalAmount = 0;
     var volumeCredits = 0;
     var result = "Statement for " + invoice.customer() + "\n";
-    final var formatter = NumberFormat.getCurrencyInstance(Locale.US);
-    formatter.setCurrency(Currency.getInstance(Locale.US));
 
     for(Performance perf : invoice.performances()) {
       volumeCredits += volumeCreditsFor.apply(perf);
 
       // print line for this order
-      result += "  " + playFor.apply(perf).name() + ": " + formatter.format(amountFor.apply(perf)/100)
+      result += "  " + playFor.apply(perf).name() + ": " + usd.apply(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
       totalAmount += amountFor.apply(perf);
     }
-    result += "Amount owed is " + formatter.format(totalAmount/100) + "\n";
+    result += "Amount owed is " + usd.apply(totalAmount/100) + "\n";
     result += "You earned " + volumeCredits + " credits\n";
     return result;
   }
