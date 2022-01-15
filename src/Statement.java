@@ -32,6 +32,10 @@ record StatementData(
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
+    return renderPlainText(createStatementData(invoice,plays));
+  }
+
+  static StatementData createStatementData(Invoice invoice, Map<String, Play> plays) {
 
     Function<Performance,Play> playFor =
       aPerformance -> plays.get(aPerformance.playID());
@@ -80,12 +84,11 @@ public class Statement {
 
     final var enrichedPerformances =
       invoice.performances().stream().map(enrichPerformance::apply).collect(toList());
-    final var statementData = new StatementData(
-      invoice .customer(),
+    return new StatementData(
+      invoice.customer(),
       enrichedPerformances,
       totalAmount.apply(enrichedPerformances),
       totalVolumeCredits.apply(enrichedPerformances));
-    return renderPlainText(statementData);
   }
 
   static String renderPlainText(StatementData data) {
