@@ -3,13 +3,20 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static java.util.stream.Collectors.toList;
+
 record Play(String name, String type) { }
 
-record Performance(String playID, int audience) { }
+record Performance(String playID, Optional<Play> play, int audience) {
+  Performance(String playID, int audience) {
+    this(playID, Optional.empty(), audience);
+  }
+}
 
 record Invoice(String customer, List<Performance> performances) { }
 
@@ -18,18 +25,26 @@ record StatementData(String customer, List<Performance> performances) { }
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
-    final var statementData = new StatementData(invoice .customer(), invoice.performances());
+
+    Function<Performance,Play> playFor =
+      aPerformance -> plays.get(aPerformance.playID());
+
+    Function<Performance,Performance> enrichPerformance = aPerformance ->
+      new Performance(aPerformance.playID(),
+                      Optional.of(playFor.apply(aPerformance)),
+                      aPerformance.audience());
+    
+    final var statementData = new StatementData(
+      invoice .customer(),
+      invoice.performances().stream().map(enrichPerformance::apply).collect(toList()));
     return renderPlainText(statementData, plays);
   }
 
   static String renderPlainText(StatementData data, Map<String, Play> plays) {
 
-    Function<Performance,Play> playFor = aPerformance ->
-        plays.get(aPerformance.playID());
-
     Function<Performance,Integer> amountFor = aPerformance -> {
       var result = 0;
-      switch (playFor.apply(aPerformance).type()) {
+      switch (aPerformance.play().get().type()) {
         case "tragedy" -> {
           result = 40_000;
           if (aPerformance.audience() > 30)
@@ -42,7 +57,7 @@ public class Statement {
           result += 300 * aPerformance.audience();
         }
         default ->
-          throw new IllegalArgumentException("unknown type " + playFor.apply(aPerformance).type());
+          throw new IllegalArgumentException("unknown type " + aPerformance.play().get().type());
       }
       return result;
     };
@@ -50,7 +65,7 @@ public class Statement {
     Function<Performance,Integer> volumeCreditsFor = aPerformance -> {
       var result = 0;
       result += Math.max(aPerformance.audience() - 30, 0);
-      if ("comedy" == playFor.apply(aPerformance).type())
+      if ("comedy" == aPerformance.play().get().type())
         result += Math.floor(aPerformance.audience() / 5);
           return result;
     };
@@ -77,7 +92,7 @@ public class Statement {
 
     var result = "Statement for " + data.customer() + "\n";
     for(Performance perf : data.performances()) {
-      result += "  " + playFor.apply(perf).name() + ": " + usd.apply(amountFor.apply(perf)/100)
+      result += "  " + perf.play().get().name() + ": " + usd.apply(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
     }
 
