@@ -16,9 +16,12 @@ public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
 
+    Function<Performance,Play> playFor = aPerformance ->
+        plays.get(aPerformance.playID());
+
     BiFunction<Performance,Play,Integer> amountFor = (aPerformance, play) -> {
       var result = 0;
-      switch (play.type()) {
+      switch (playFor.apply(aPerformance).type()) {
         case "tragedy" -> {
           result = 40_000;
           if (aPerformance.audience() > 30)
@@ -31,13 +34,10 @@ public class Statement {
           result += 300 * aPerformance.audience();
         }
         default ->
-            throw new IllegalArgumentException("unknown type " + play.type());
+          throw new IllegalArgumentException("unknown type " + playFor.apply(aPerformance).type());
       }
       return result;
     };
-
-    Function<Performance,Play> playFor = aPerformance ->
-        plays.get(aPerformance.playID());
 
     var totalAmount = 0;
     var volumeCredits = 0;
