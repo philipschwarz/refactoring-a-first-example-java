@@ -46,17 +46,16 @@ public class Statement {
     formatter.setCurrency(Currency.getInstance(Locale.US));
 
     for(Performance perf : invoice.performances()) {
-      final var play = playFor.apply(perf);
-      final var thisAmount = amountFor.apply(perf,play);
+      final var thisAmount = amountFor.apply(perf, playFor.apply(perf));
 
-      // add volume credits
+        // add volume credits
       volumeCredits += Math.max(perf.audience() - 30, 0);
       // add extra credit for every ten comedy attendees
-      if ("comedy" == play.type())
+      if ("comedy" == playFor.apply(perf).type())
         volumeCredits += Math.floor(perf.audience() / 5);
 
       // print line for this order
-      result += "  " + play.name() + ": " + formatter.format(thisAmount/100)
+      result += "  " + playFor.apply(perf).name() + ": " + formatter.format(thisAmount/100)
                      + " (" + perf.audience() + " seats)\n";
       totalAmount += thisAmount;
     }
