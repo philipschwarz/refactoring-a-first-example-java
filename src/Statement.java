@@ -46,8 +46,6 @@ public class Statement {
     formatter.setCurrency(Currency.getInstance(Locale.US));
 
     for(Performance perf : invoice.performances()) {
-      final var thisAmount = amountFor.apply(perf);
-
         // add volume credits
       volumeCredits += Math.max(perf.audience() - 30, 0);
       // add extra credit for every ten comedy attendees
@@ -55,9 +53,9 @@ public class Statement {
         volumeCredits += Math.floor(perf.audience() / 5);
 
       // print line for this order
-      result += "  " + playFor.apply(perf).name() + ": " + formatter.format(thisAmount/100)
+      result += "  " + playFor.apply(perf).name() + ": " + formatter.format(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
-      totalAmount += thisAmount;
+      totalAmount += amountFor.apply(perf);
     }
     result += "Amount owed is " + formatter.format(totalAmount/100) + "\n";
     result += "You earned " + volumeCredits + " credits\n";
