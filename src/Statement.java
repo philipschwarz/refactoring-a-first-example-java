@@ -19,7 +19,7 @@ public class Statement {
     Function<Performance,Play> playFor = aPerformance ->
         plays.get(aPerformance.playID());
 
-    BiFunction<Performance,Play,Integer> amountFor = (aPerformance, play) -> {
+    Function<Performance,Integer> amountFor = aPerformance -> {
       var result = 0;
       switch (playFor.apply(aPerformance).type()) {
         case "tragedy" -> {
@@ -46,7 +46,7 @@ public class Statement {
     formatter.setCurrency(Currency.getInstance(Locale.US));
 
     for(Performance perf : invoice.performances()) {
-      final var thisAmount = amountFor.apply(perf, playFor.apply(perf));
+      final var thisAmount = amountFor.apply(perf);
 
         // add volume credits
       volumeCredits += Math.max(perf.audience() - 30, 0);
