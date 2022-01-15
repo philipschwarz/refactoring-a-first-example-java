@@ -13,16 +13,16 @@ record Performance(String playID, int audience) { }
 
 record Invoice(String customer, List<Performance> performances) { }
 
-record StatementData(String customer) { }
+record StatementData(String customer, List<Performance> performances) { }
 
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
-    final var statementData = new StatementData(invoice .customer());
-    return renderPlainText(statementData, invoice, plays);
+    final var statementData = new StatementData(invoice .customer(), invoice.performances());
+    return renderPlainText(statementData, plays);
   }
 
-  static String renderPlainText(StatementData data, Invoice invoice, Map<String, Play> plays) {
+  static String renderPlainText(StatementData data, Map<String, Play> plays) {
 
     Function<Performance,Play> playFor = aPerformance ->
         plays.get(aPerformance.playID());
@@ -63,20 +63,20 @@ public class Statement {
 
     Supplier<Integer> totalVolumeCredits = () -> {
       var result = 0;
-      for (Performance perf : invoice.performances())
+      for (Performance perf : data.performances())
         result += volumeCreditsFor.apply(perf);
       return result;
     };
 
     Supplier<Integer> totalAmount = () -> {
       var result = 0;
-      for (Performance perf : invoice.performances())
+      for (Performance perf : data.performances())
         result += amountFor.apply(perf);
       return result;
     };
 
     var result = "Statement for " + data.customer() + "\n";
-    for(Performance perf : invoice.performances()) {
+    for(Performance perf : data.performances()) {
       result += "  " + playFor.apply(perf).name() + ": " + usd.apply(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
     }
