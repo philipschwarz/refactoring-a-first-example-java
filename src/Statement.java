@@ -3,6 +3,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 record Play(String name, String type) { }
 
@@ -13,6 +14,27 @@ record Invoice(String customer, List<Performance> performances) { }
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
+
+    BiFunction<Performance,Play,Integer> amountFor = (aPerformance, play) -> {
+      var result = 0;
+      switch (play.type()) {
+        case "tragedy" -> {
+          result = 40_000;
+          if (aPerformance.audience() > 30)
+            result += 1_000 * (aPerformance.audience() - 30);
+        }
+        case "comedy" -> {
+          result = 30_000;
+          if (aPerformance.audience() > 20)
+            result += 10_000 + 500 * (aPerformance.audience() - 20);
+          result += 300 * aPerformance.audience();
+        }
+        default ->
+            throw new IllegalArgumentException("unknown type " + play.type());
+      }
+      return result;
+    };
+
     var totalAmount = 0;
     var volumeCredits = 0;
     var result = "Statement for " + invoice.customer() + "\n";
@@ -21,26 +43,7 @@ public class Statement {
 
     for(Performance perf : invoice.performances()) {
       final var play = plays.get(perf.playID());
-      var thisAmount = 0;
-
-      switch (play.type()) {
-
-        case "tragedy" -> {
-          thisAmount = 40_000;
-          if (perf.audience() > 30)
-            thisAmount +=1_000 * (perf.audience() - 30);
-        }
-
-        case "comedy" -> {
-          thisAmount = 30_000;
-            if (perf.audience() > 20)
-              thisAmount += 10_000 + 500 * (perf.audience() - 20);
-            thisAmount += 300 * perf.audience();
-        }
-
-        default ->
-          throw new IllegalArgumentException("unknown type " + play.type());
-      }
+      final var thisAmount = amountFor.apply(perf,play);
 
       // add volume credits
       volumeCredits += Math.max(perf.audience() - 30, 0);
