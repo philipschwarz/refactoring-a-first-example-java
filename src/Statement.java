@@ -61,14 +61,15 @@ public class Statement {
       }
       return volumeCredits;
     };
-    
-    var totalAmount = 0;
-    var result = "Statement for " + invoice.customer() + "\n";
 
+    var result = "Statement for " + invoice.customer() + "\n";
     for(Performance perf : invoice.performances()) {
-      // print line for this order
       result += "  " + playFor.apply(perf).name() + ": " + usd.apply(amountFor.apply(perf)/100)
                      + " (" + perf.audience() + " seats)\n";
+    }
+
+    var totalAmount = 0;
+    for(Performance perf : invoice.performances()) {    
       totalAmount += amountFor.apply(perf);
     }
 
