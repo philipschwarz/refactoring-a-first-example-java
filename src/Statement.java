@@ -56,10 +56,16 @@ public class Statement {
 
     Supplier<Integer> totalVolumeCredits = () -> {
       var volumeCredits = 0;
-      for (Performance perf : invoice.performances()) {
+      for (Performance perf : invoice.performances())
         volumeCredits += volumeCreditsFor.apply(perf);
-      }
       return volumeCredits;
+    };
+
+    Supplier<Integer> appleSauce = () -> {
+      var totalAmount = 0;
+      for (Performance perf : invoice.performances())
+        totalAmount += amountFor.apply(perf);
+      return totalAmount;
     };
 
     var result = "Statement for " + invoice.customer() + "\n";
@@ -68,12 +74,7 @@ public class Statement {
                      + " (" + perf.audience() + " seats)\n";
     }
 
-    var totalAmount = 0;
-    for(Performance perf : invoice.performances()) {    
-      totalAmount += amountFor.apply(perf);
-    }
-
-    result += "Amount owed is " + usd.apply(totalAmount/100) + "\n";
+    result += "Amount owed is " + usd.apply(appleSauce.get()/100) + "\n";
     result += "You earned " + totalVolumeCredits.get() + " credits\n";
     return result;
   }
