@@ -16,6 +16,9 @@ record Invoice(String customer, List<Performance> performances) { }
 public class Statement {
 
   static String statement(Invoice invoice, Map<String, Play> plays) {
+    return renderPlainText(invoice, plays);
+  }
+  static String renderPlainText(Invoice invoice, Map<String, Play> plays) {
 
     Function<Performance,Play> playFor = aPerformance ->
         plays.get(aPerformance.playID());
