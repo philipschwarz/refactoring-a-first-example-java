@@ -12,9 +12,9 @@ import static java.util.stream.Collectors.toList;
 
 record Play(String name, String type) { }
 
-record Performance(String playID, Optional<Play> play, int audience, Optional<Integer> amount){
+record Performance(String playID, Optional<Play> play, int audience, Optional<Integer> amount, Optional<Integer> volumeCredits){
   Performance(String playID, int audience) {
-    this(playID, Optional.empty(), audience, Optional.empty());
+    this(playID, Optional.empty(), audience, Optional.empty(), Optional.empty());
   }
 }
 
@@ -49,11 +49,20 @@ public class Statement {
       return result;
     };
 
+    Function<Performance,Integer> volumeCreditsFor = aPerformance -> {
+      var result = 0;
+      result += Math.max(aPerformance.audience() - 30, 0);
+      if ("comedy" == playFor.apply(aPerformance).type())
+        result += Math.floor(aPerformance.audience() / 5);
+      return result;
+    };
+
     Function<Performance,Performance> enrichPerformance = aPerformance ->
       new Performance(aPerformance.playID(),
           Optional.of(playFor.apply(aPerformance)),
           aPerformance.audience(),
-          Optional.of(amountFor.apply(aPerformance)));
+          Optional.of(amountFor.apply(aPerformance)),
+          Optional.of(volumeCreditsFor.apply(aPerformance)));
 
     final var statementData = new StatementData(
       invoice .customer(),
@@ -62,14 +71,6 @@ public class Statement {
   }
 
   static String renderPlainText(StatementData data) {
-
-    Function<Performance,Integer> volumeCreditsFor = aPerformance -> {
-      var result = 0;
-      result += Math.max(aPerformance.audience() - 30, 0);
-      if ("comedy" == aPerformance.play().get().type())
-        result += Math.floor(aPerformance.audience() / 5);
-          return result;
-    };
 
     Function<Integer,String> usd = aNumber -> {
       final var formatter = NumberFormat.getCurrencyInstance(Locale.US);
@@ -80,7 +81,7 @@ public class Statement {
     Supplier<Integer> totalVolumeCredits = () -> {
       var result = 0;
       for (Performance perf : data.performances())
-        result += volumeCreditsFor.apply(perf);
+        result += perf.volumeCredits().get();
       return result;
     };
 
