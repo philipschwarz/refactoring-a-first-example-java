@@ -21,4 +21,4 @@ record StatementData(
     Integer totalVolumeCredits
 ) { }
 
-record PerformanceCalculator(Performance performance) { }
+record PerformanceCalculator(Performance performance, Play play) { }

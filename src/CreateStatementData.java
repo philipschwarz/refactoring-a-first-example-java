@@ -40,19 +40,19 @@ public class CreateStatementData {
     };
 
     Function<List<EnrichedPerformance>, Integer> totalVolumeCredits = (performances) ->
-        performances.stream().collect(reducing(0, EnrichedPerformance::volumeCredits, Integer::sum));
+      performances.stream().collect(reducing(0, EnrichedPerformance::volumeCredits, Integer::sum));
 
     Function<List<EnrichedPerformance>, Integer> totalAmount = (performances) ->
-        performances.stream().collect(reducing(0, EnrichedPerformance::amount, Integer::sum));
+      performances.stream().collect(reducing(0, EnrichedPerformance::amount, Integer::sum));
 
     Function<Performance, EnrichedPerformance> enrichPerformance = aPerformance -> {
-      final var calculator = new PerformanceCalculator(aPerformance);
+      final var calculator = new PerformanceCalculator(aPerformance,playFor.apply(aPerformance));
       return new EnrichedPerformance(
-          aPerformance.playID(),
-          playFor.apply(aPerformance),
-          aPerformance.audience(),
-          amountFor.apply(aPerformance),
-          volumeCreditsFor.apply(aPerformance));
+        aPerformance.playID(),
+        calculator.play(),
+        aPerformance.audience(),
+        amountFor.apply(aPerformance),
+        volumeCreditsFor.apply(aPerformance));
     };
 
     final var enrichedPerformances =
