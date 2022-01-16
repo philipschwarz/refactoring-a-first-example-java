@@ -12,24 +12,8 @@ public class CreateStatementData {
     Function<Performance, Play> playFor =
         aPerformance -> plays.get(aPerformance.playID());
 
-    Function<Performance, Integer> amountFor = aPerformance -> {
-      var result = 0;
-      switch (playFor.apply(aPerformance).type()) {
-        case "tragedy" -> {
-          result = 40_000;
-          if (aPerformance.audience() > 30)
-            result += 1_000 * (aPerformance.audience() - 30);
-        }
-        case "comedy" -> {
-          result = 30_000;
-          if (aPerformance.audience() > 20)
-            result += 10_000 + 500 * (aPerformance.audience() - 20);
-          result += 300 * aPerformance.audience();
-        }
-        default -> throw new IllegalArgumentException("unknown type " + playFor.apply(aPerformance).type());
-      }
-      return result;
-    };
+    Function<Performance,Integer> amountFor = aPerformance ->
+      new PerformanceCalculator(aPerformance, playFor.apply(aPerformance)).amount();
 
     Function<Performance, Integer> volumeCreditsFor = aPerformance -> {
       var result = 0;
