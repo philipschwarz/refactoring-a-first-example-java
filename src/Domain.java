@@ -24,20 +24,7 @@ record StatementData(
 sealed interface PerformanceCalculator {
   Performance performance();
   Play play();
-  default int amount() {
-    var result = 0;
-    switch (play().type()) {
-      case "tragedy" -> throw new IllegalArgumentException("bad thing");
-      case "comedy" -> {
-        result = 30_000;
-        if (performance().audience() > 20)
-          result += 10_000 + 500 * (performance().audience() - 20);
-        result += 300 * performance().audience(); }
-      default -> throw new IllegalArgumentException(
-            "unknown type " + play().type());
-    }
-    return result;
-  }
+  int amount();
   default int volumeCredits() {
     var result = 0;
     result += Math.max(performance().audience() - 30, 0);
@@ -62,4 +49,12 @@ record TragedyCalculator(Performance performance, Play play) implements Performa
     return result;
   }
 }
-record ComedyCalculator(Performance performance, Play play) implements PerformanceCalculator { }
+record ComedyCalculator(Performance performance, Play play) implements PerformanceCalculator {
+  @Override public int amount() {
+    var result = 30_000;
+    if (performance().audience() > 20) 
+      result += 10_000 + 500 * (performance().audience() - 20);
+    result += 300 * performance().audience(); 
+    return result;
+  }
+}
