@@ -20,3 +20,5 @@ record StatementData(
     Integer totalAmount,
     Integer totalVolumeCredits
 ) { }
+
+record PerformanceCalculator(Performance performance) { }
