@@ -12,9 +12,6 @@ public class CreateStatementData {
     Function<Performance, Play> playFor =
       aPerformance -> plays.get(aPerformance.playID());
 
-    Function<Performance, Integer> volumeCreditsFor = aPerformance ->
-      new PerformanceCalculator(aPerformance,playFor.apply(aPerformance)).volumeCredits();
-
     Function<List<EnrichedPerformance>, Integer> totalVolumeCredits = (performances) ->
       performances.stream().collect(reducing(0, EnrichedPerformance::volumeCredits, Integer::sum));
 
@@ -28,7 +25,7 @@ public class CreateStatementData {
         calculator.play(),
         aPerformance.audience(),
         calculator.amount(),
-        volumeCreditsFor.apply(aPerformance));
+        calculator.volumeCredits());
     };
 
     final var enrichedPerformances =
