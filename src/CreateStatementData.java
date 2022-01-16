@@ -10,10 +10,7 @@ public class CreateStatementData {
   static StatementData createStatementData(Invoice invoice, Map<String, Play> plays) {
 
     Function<Performance, Play> playFor =
-        aPerformance -> plays.get(aPerformance.playID());
-
-    Function<Performance,Integer> amountFor = aPerformance ->
-      new PerformanceCalculator(aPerformance, playFor.apply(aPerformance)).amount();
+      aPerformance -> plays.get(aPerformance.playID());
 
     Function<Performance, Integer> volumeCreditsFor = aPerformance -> {
       var result = 0;
@@ -35,7 +32,7 @@ public class CreateStatementData {
         aPerformance.playID(),
         calculator.play(),
         aPerformance.audience(),
-        amountFor.apply(aPerformance),
+        calculator.amount(),
         volumeCreditsFor.apply(aPerformance));
     };
 
