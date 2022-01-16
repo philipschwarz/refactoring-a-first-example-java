@@ -27,10 +27,7 @@ sealed interface PerformanceCalculator {
   default int amount() {
     var result = 0;
     switch (play().type()) {
-      case "tragedy" -> {
-        result = 40_000;
-        if (performance().audience() > 30)
-          result += 1_000 * (performance().audience() - 30); }
+      case "tragedy" -> throw new IllegalArgumentException("bad thing");
       case "comedy" -> {
         result = 30_000;
         if (performance().audience() > 20)
@@ -57,5 +54,12 @@ sealed interface PerformanceCalculator {
     };
   }
 }
-record TragedyCalculator(Performance performance, Play play) implements PerformanceCalculator { }
+record TragedyCalculator(Performance performance, Play play) implements PerformanceCalculator {
+  @Override public int amount() {
+    var result = 40_000;
+    if (performance().audience() > 30) 
+      result += 1_000 * (performance().audience() - 30);
+    return result;
+  }
+}
 record ComedyCalculator(Performance performance, Play play) implements PerformanceCalculator { }
