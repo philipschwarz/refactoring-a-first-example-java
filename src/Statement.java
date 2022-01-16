@@ -3,6 +3,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Statement {
 
@@ -13,31 +14,40 @@ public class Statement {
   static String htmlStatement(Invoice invoice, Map<String, Play> plays) {
     return renderHtml(CreateStatementData.createStatementData(invoice, plays));
   }
-  
-  static String renderPlainText(StatementData data) {
-    var result = "Statement for " + data.customer() + "\n";
-    for(EnrichedPerformance perf : data.performances()) {
-      result += "  " + perf.play().name() + ": " + usd(perf.amount()/100)
-                     + " (" + perf.audience() + " seats)\n";
-    }
 
-    result += "Amount owed is " + usd(data.totalAmount()/100) + "\n";
-    result += "You earned " + data.totalVolumeCredits() + " credits\n";
-    return result;
+  static String renderPlainText(StatementData data) {
+    return
+      "Statement for %s\n".formatted(data.customer()) +
+        data.performances()
+            .stream()
+            .map(p ->
+                "  %s: %s (%d seats)\n".formatted(
+                  p.play().name(), usd(p.amount()/100), p.audience())
+            ).collect(Collectors.joining()) +
+        """
+        Amount owed is %s
+        You earned %d credits
+        """.formatted(usd(data.totalAmount()/100), data.totalVolumeCredits());
   }
 
   static String renderHtml(StatementData data) {
-    var result = "<h1>Statement for "+data.customer()+"</h1>\n";
-    result += "<table>\n";
-    result += "<tr><th>play</th><th>seats</th><th>cost</th></tr>\n";
-    for (EnrichedPerformance perf : data.performances()) {
-      result += "<tr><td>" + perf.play().name() + "</td><td>" + perf.audience() + "</td>";
-      result += "<td>" + usd(perf.amount() / 100) + "</td></tr>\n";
-    }
-    result += "</table>\n";
-    result += "<p>Amount owed is <em>" + usd(data.totalAmount()/100) + "</em></p>\n";
-    result += "<p>You earned <em>"+ data.totalVolumeCredits() +"</em> credits</p>\n";
-    return result;
+    return
+      """
+      <h1>Statement for %s</h1>
+      <table>
+      <tr><th>play</th><th>seats</th><th>cost</th></tr>
+      """.formatted(data.customer()) +
+        data
+          .performances()
+          .stream()
+          .map(p -> "<tr><td>%s</td><td>%d</td><td>%s</td></tr>\n"
+              .formatted(p.play().name(),p.audience(),usd(p.amount()/100))
+          ).collect(Collectors.joining()) +
+      """
+      </table>
+      <p>Amount owed is <em>%s</em></p>
+      <p>You earned <em>%d</em> credits</p>
+      """.formatted(usd(data.totalAmount()/100), data.totalVolumeCredits());
   }
 
   static String usd(int aNumber) {
