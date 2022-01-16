@@ -2,7 +2,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 public class CreateStatementData {
@@ -13,10 +12,10 @@ public class CreateStatementData {
       aPerformance -> plays.get(aPerformance.playID());
 
     Function<List<EnrichedPerformance>, Integer> totalVolumeCredits = (performances) ->
-      performances.stream().collect(reducing(0, EnrichedPerformance::volumeCredits, Integer::sum));
+      performances.stream().mapToInt(EnrichedPerformance::volumeCredits).sum();
 
     Function<List<EnrichedPerformance>, Integer> totalAmount = (performances) ->
-      performances.stream().collect(reducing(0, EnrichedPerformance::amount, Integer::sum));
+      performances.stream().mapToInt(EnrichedPerformance::amount).sum();
 
     Function<Performance, EnrichedPerformance> enrichPerformance = aPerformance -> {
       final var calculator = PerformanceCalculator.instance(aPerformance,playFor.apply(aPerformance));
