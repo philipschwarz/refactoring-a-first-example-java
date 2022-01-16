@@ -19,7 +19,7 @@ public class CreateStatementData {
       performances.stream().collect(reducing(0, EnrichedPerformance::amount, Integer::sum));
 
     Function<Performance, EnrichedPerformance> enrichPerformance = aPerformance -> {
-      final var calculator = new PerformanceCalculator(aPerformance,playFor.apply(aPerformance));
+      final var calculator = PerformanceCalculator.instance(aPerformance,playFor.apply(aPerformance));
       return new EnrichedPerformance(
         aPerformance.playID(),
         calculator.play(),

@@ -21,29 +21,41 @@ record StatementData(
   Integer totalVolumeCredits
 ) { }
 
-record PerformanceCalculator(Performance performance, Play play) {
-  int amount() {
+sealed interface PerformanceCalculator {
+  Performance performance();
+  Play play();
+  default int amount() {
     var result = 0;
-    switch (play.type()) {
+    switch (play().type()) {
       case "tragedy" -> {
         result = 40_000;
-        if (performance.audience() > 30) 
-          result += 1_000 * (performance.audience() - 30); }
+        if (performance().audience() > 30)
+          result += 1_000 * (performance().audience() - 30); }
       case "comedy" -> {
         result = 30_000;
-        if (performance.audience() > 20) 
-          result += 10_000 + 500 * (performance.audience() - 20);
-        result += 300 * performance.audience(); }
+        if (performance().audience() > 20)
+          result += 10_000 + 500 * (performance().audience() - 20);
+        result += 300 * performance().audience(); }
       default -> throw new IllegalArgumentException(
-            "unknown type " + play.type());
+            "unknown type " + play().type());
     }
     return result;
   }
-  int volumeCredits() {
+  default int volumeCredits() {
     var result = 0;
-    result += Math.max(performance.audience() - 30, 0);
-    if ("comedy" == play.type()) 
-      result += Math.floor(performance.audience() / 5);  
+    result += Math.max(performance().audience() - 30, 0);
+    if ("comedy" == play().type())
+      result += Math.floor(performance().audience() / 5);
     return result; 
-  }  
+  }
+  static PerformanceCalculator instance(Performance aPerformance, Play aPlay) {
+    return switch (aPlay.type()) {
+      case "tragedy" -> new TragedyCalculator(aPerformance, aPlay);
+      case "comedy" -> new ComedyCalculator(aPerformance, aPlay);
+      default -> throw new IllegalArgumentException(
+        String.format("unknown type '%s'", aPlay.type()));
+    };
+  }
 }
+record TragedyCalculator(Performance performance, Play play) implements PerformanceCalculator { }
+record ComedyCalculator(Performance performance, Play play) implements PerformanceCalculator { }
