@@ -39,4 +39,11 @@ record PerformanceCalculator(Performance performance, Play play) {
     }
     return result;
   }
+  int volumeCredits() {
+    var result = 0;
+    result += Math.max(performance.audience() - 30, 0);
+    if ("comedy" == play.type()) 
+      result += Math.floor(performance.audience() / 5);  
+    return result; 
+  }  
 }
