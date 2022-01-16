@@ -12,13 +12,8 @@ public class CreateStatementData {
     Function<Performance, Play> playFor =
       aPerformance -> plays.get(aPerformance.playID());
 
-    Function<Performance, Integer> volumeCreditsFor = aPerformance -> {
-      var result = 0;
-      result += Math.max(aPerformance.audience() - 30, 0);
-      if ("comedy" == playFor.apply(aPerformance).type())
-        result += Math.floor(aPerformance.audience() / 5);
-      return result;
-    };
+    Function<Performance, Integer> volumeCreditsFor = aPerformance ->
+      new PerformanceCalculator(aPerformance,playFor.apply(aPerformance)).volumeCredits();
 
     Function<List<EnrichedPerformance>, Integer> totalVolumeCredits = (performances) ->
       performances.stream().collect(reducing(0, EnrichedPerformance::volumeCredits, Integer::sum));
