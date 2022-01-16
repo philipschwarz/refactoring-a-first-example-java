@@ -39,19 +39,19 @@ sealed interface PerformanceCalculator {
 }
 record TragedyCalculator(Performance performance, Play play) implements PerformanceCalculator {
   @Override public int amount() {
-    var result = 40_000;
-    if (performance().audience() > 30) 
-      result += 1_000 * (performance().audience() - 30);
-    return result;
+    final var basicAmount = 40_000;
+    final var largeAudiencePremiumAmount =
+      performance.audience() <= 30 ? 0 : 1_000 * (performance.audience() - 30);
+    return basicAmount + largeAudiencePremiumAmount;
   }
 }
 record ComedyCalculator(Performance performance, Play play) implements PerformanceCalculator {
   @Override public int amount() {
-    var result = 30_000;
-    if (performance().audience() > 20) 
-      result += 10_000 + 500 * (performance().audience() - 20);
-    result += 300 * performance().audience(); 
-    return result;
+    final var basicAmount = 30_000;
+    final var largeAudiencePremiumAmount =
+      performance.audience() <= 20 ? 0 : 10_000 + 500 * (performance.audience() - 20);
+    final var audienceSizeAmount = 300 * performance.audience();
+    return basicAmount + largeAudiencePremiumAmount + audienceSizeAmount;
   }
   @Override public int volumeCredits() {
     return PerformanceCalculator.super.volumeCredits()
