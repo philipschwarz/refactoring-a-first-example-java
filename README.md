@@ -1,2 +1,2 @@
 Java code for [Refactoring: A First Example - Martin Fowler’s First Example of Refactoring, Adapted to Java](https://www.slideshare.net/pjschwarz/refactoring-a-first-example-martin-fowlers-first-example-of-refactoring-adapted-to-java)
-![Refactoring: A First Example - Martin Fowler’s First Example of Refactoring, Adapted to Scala](images/refactoring-a-first-example-the-refactoring-example-by-martin-fowler-adapted-to-java.png?raw=true )
+![Refactoring: A First Example - Martin Fowler’s First Example of Refactoring, Adapted to Java](images/refactoring-a-first-example-the-refactoring-example-by-martin-fowler-adapted-to-java.png?raw=true )
