@@ -26,11 +26,7 @@ sealed interface PerformanceCalculator {
   Play play();
   int amount();
   default int volumeCredits() {
-    var result = 0;
-    result += Math.max(performance().audience() - 30, 0);
-    if ("comedy" == play().type())
-      result += Math.floor(performance().audience() / 5);
-    return result; 
+    return Math.max(performance().audience() - 30, 0);
   }
   static PerformanceCalculator instance(Performance aPerformance, Play aPlay) {
     return switch (aPlay.type()) {
@@ -56,5 +52,9 @@ record ComedyCalculator(Performance performance, Play play) implements Performan
       result += 10_000 + 500 * (performance().audience() - 20);
     result += 300 * performance().audience(); 
     return result;
+  }
+  @Override public int volumeCredits() {
+    return PerformanceCalculator.super.volumeCredits()
+      + (int) Math.floor(performance().audience() / 5);
   }
 }
