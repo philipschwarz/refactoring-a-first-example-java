@@ -8,8 +8,8 @@ record EnrichedPerformance(
   String playID,
   Play play,
   int audience,
-  Integer amount,
-  Integer volumeCredits
+  int amount,
+  int volumeCredits
 ) { }
 
 record Invoice(String customer, List<Performance> performances) { }
@@ -17,8 +17,8 @@ record Invoice(String customer, List<Performance> performances) { }
 record StatementData(
   String customer,
   List<EnrichedPerformance> performances,
-  Integer totalAmount,
-  Integer totalVolumeCredits
+  int totalAmount,
+  int totalVolumeCredits
 ) { }
 
 sealed interface PerformanceCalculator {
