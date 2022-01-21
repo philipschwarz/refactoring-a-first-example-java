@@ -28,7 +28,7 @@ public class CreateStatementData {
     };
 
     final var enrichedPerformances =
-      invoice.performances().stream().map(enrichPerformance::apply).collect(toList());
+      invoice.performances().stream().map(enrichPerformance).collect(toList());
     return new StatementData(
       invoice.customer(),
       enrichedPerformances,
